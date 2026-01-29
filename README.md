@@ -147,7 +147,7 @@ services:
     depends_on:
       - devopsdb
 ---
-```md
+
 ## 🧪 Jenkins Pipeline
 The Jenkins pipeline was written using Declarative Pipeline syntax and includes the following stages:
 Clean Workspace
