@@ -5,14 +5,14 @@
 This project demonstrates the implementation of a complete **end-to-end CI/CD pipeline** for a Java-based application using modern DevOps tools.  
 The backend application and database source code were taken from GitHub and deployed using a fully automated pipeline.
 
-The pipeline automates code checkout, build, code quality analysis, artifact storage, containerization, security scanning, and deployment on AWS EC2.
+The pipeline automates code checkout, build, code quality analysis, artifact storage, containerization, security scanning, deployment, and monitoring on AWS EC2.
 
 ---
 
 ## 🔁 CI/CD Pipeline Flow
 
 GitHub → Jenkins → Maven Build → SonarQube → Quality Gate → Nexus →  
-Docker Build → Trivy Scan → Docker Compose Deploy → Email Notification
+Docker Build → Trivy Scan → Docker Compose Deploy → Email Notification → Monitoring (New Relic)
 
 ---
 
@@ -27,6 +27,7 @@ Docker Build → Trivy Scan → Docker Compose Deploy → Email Notification
 - Docker Compose – Multi-container orchestration  
 - Trivy – Vulnerability scanning  
 - Tomcat – Application server  
+- New Relic – Application performance monitoring  
 - AWS EC2 – Infrastructure (Amazon Linux)  
 
 ---
@@ -43,7 +44,7 @@ Docker Build → Trivy Scan → Docker Compose Deploy → Email Notification
 ## ⚙ Implementation Steps
 
 ### 1️⃣ EC2 Provisioning
-An EC2 instance was launched on AWS using Amazon Linux with sufficient CPU, memory, and storage to support Jenkins, Docker, and SonarQube.
+An EC2 instance was launched on AWS using Amazon Linux with sufficient CPU, memory, and storage to support Jenkins, Docker, SonarQube, and monitoring tools.
 
 ---
 
@@ -54,22 +55,20 @@ Docker Compose was installed using a supported method (binary or pip) based on a
 ---
 
 ### 3️⃣ Jenkins Installation & Configuration
-- Jenkins was installed using the official Jenkins repository.
-- Java 17 (Amazon Corretto) was configured.
-- Required plugins were installed.
-- Jenkins workspace stability was ensured by mounting a dedicated `/tmp` directory.
+- Jenkins installed using the official Jenkins repository  
+- Java 17 (Amazon Corretto) configured  
+- Required plugins installed  
+- Jenkins workspace stability ensured by mounting a dedicated `/tmp` directory  
 
-Jenkins was accessed via:
-http://<EC2-Public-IP>:8080
-
+Jenkins was accessed via: http://<EC2-Public-IP>:8080
 
 ---
 
 ### 4️⃣ SonarQube Integration
-- SonarQube was deployed as a Docker container.
-- Jenkins was integrated with SonarQube using the SonarQube Scanner plugin.
-- Authentication was configured using Jenkins credentials.
-- Webhook was configured in SonarQube.
+- SonarQube deployed as a Docker container  
+- Jenkins integrated with SonarQube Scanner plugin  
+- Authentication configured using Jenkins credentials  
+- Webhook configured in SonarQube  
 
 **Quality Gates were enforced**, and the pipeline automatically fails if the quality gate does not pass.
 
@@ -81,21 +80,39 @@ Trivy was installed on the server and integrated into the pipeline to scan Docke
 ---
 
 ### 6️⃣ Nexus Repository Integration
-- Nexus Repository Manager was installed on a separate EC2 instance.
-- A Maven hosted repository was created.
-- Jenkins was configured to upload WAR artifacts to Nexus after successful builds.
+- Nexus Repository Manager installed on a separate EC2 instance  
+- Maven hosted repository created  
+- Jenkins configured to upload WAR artifacts to Nexus after successful builds  
 
 ---
 
 ### 7️⃣ Jenkins Email Notifications
-Email Extension plugin was configured to send build status notifications after every pipeline execution.
+Email Extension plugin configured to send build status notifications after every pipeline execution.
 
 ---
 
 ### 8️⃣ Maven Integration
-Maven was configured in Jenkins under Global Tool Configuration and used for building and packaging the Java application.
+Maven configured in Jenkins under Global Tool Configuration and used for building and packaging the Java application.
 
 ---
+
+### 9️⃣ Containerization & Deployment
+- Application and database containerized using Docker  
+- Custom Dockerfiles created for application and MySQL database  
+- Multi-container deployment orchestrated using Docker Compose
+
+---
+
+### 🔟 Monitoring with New Relic
+After successful deployment using Docker Compose, **New Relic APM** was integrated into the application container to monitor runtime performance.
+
+The New Relic Java agent was configured to collect:
+- Application response time and throughput
+- Error rates and failed transactions
+- JVM performance metrics
+- CPU and memory utilization
+
+This enabled real-time observability and post-deployment monitoring of the application.
 
 ## 🐳 Docker Configuration
 
@@ -105,12 +122,15 @@ FROM tomcat:8-jre11
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
 CMD ["catalina.sh", "run"]
-**Database Dockerfile**
+
+### Database Dockerfile
+```dockerfile
 FROM mysql:5.7.25
 ENV MYSQL_ROOT_PASSWORD="devopspassword"
 ENV MYSQL_DATABASE="accounts"
 ADD db_backup.sql docker-entrypoint-initdb.d/db_backup.sql
-🧩 Docker Compose Configuration
+
+## 🧩 Docker Compose Configuration
 version: "3"
 services:
   devopsdb:
@@ -127,7 +147,7 @@ services:
     depends_on:
       - devopsdb
 
-🧪** Jenkins Pipeline**
+🧪 Jenkins Pipeline
 The Jenkins pipeline was written using Declarative Pipeline syntax and includes the following stages:
 Clean Workspace
 Code Checkout
@@ -139,3 +159,12 @@ Docker Image Build
 Trivy Image Scan
 Deployment using Docker Compose
 Email Notification
+
+🏁 Outcome
+Fully automated CI/CD pipeline
+Integrated quality, security, and monitoring checks
+Containerized deployment using Docker and Docker Compose
+Automated artifact management using Nexus
+Real-time application monitoring using New Relic
+Complete DevOps lifecycle implemented:
+Build → Test → Deploy → Monitor
