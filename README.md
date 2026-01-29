@@ -105,7 +105,7 @@ FROM tomcat:8-jre11
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
 CMD ["catalina.sh", "run"]
-Database Dockerfile
+**Database Dockerfile**
 FROM mysql:5.7.25
 ENV MYSQL_ROOT_PASSWORD="devopspassword"
 ENV MYSQL_DATABASE="accounts"
@@ -126,25 +126,16 @@ services:
       - "1111:8080"
     depends_on:
       - devopsdb
-🧪 Jenkins Pipeline
+
+🧪** Jenkins Pipeline**
 The Jenkins pipeline was written using Declarative Pipeline syntax and includes the following stages:
-
 Clean Workspace
-
 Code Checkout
-
 Build using Maven
-
 Code Quality Analysis (SonarQube)
-
 Quality Gate Enforcement
-
 Artifact Upload to Nexus
-
 Docker Image Build
-
 Trivy Image Scan
-
 Deployment using Docker Compose
-
 Email Notification
