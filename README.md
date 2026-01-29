@@ -131,6 +131,7 @@ ADD db_backup.sql docker-entrypoint-initdb.d/db_backup.sql
 
 
 ## 🧩 Docker Compose Configuration
+```yaml
 version: "3"
 services:
   devopsdb:
@@ -146,8 +147,8 @@ services:
       - "1111:8080"
     depends_on:
       - devopsdb
----
 
+---
 ## 🧪 Jenkins Pipeline
 The Jenkins pipeline was written using Declarative Pipeline syntax and includes the following stages:
 Clean Workspace
@@ -169,3 +170,4 @@ Automated artifact management using Nexus
 Real-time application monitoring using New Relic
 Complete DevOps lifecycle implemented:
 Build → Test → Deploy → Monitor
+---
