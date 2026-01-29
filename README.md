@@ -130,6 +130,7 @@ ENV MYSQL_ROOT_PASSWORD="devopspassword"
 ENV MYSQL_DATABASE="accounts"
 ADD db_backup.sql docker-entrypoint-initdb.d/db_backup.sql
 
+
 ## 🧩 Docker Compose Configuration
 version: "3"
 services:
@@ -147,7 +148,7 @@ services:
     depends_on:
       - devopsdb
 
-🧪 Jenkins Pipeline
+## 🧪 Jenkins Pipeline
 The Jenkins pipeline was written using Declarative Pipeline syntax and includes the following stages:
 Clean Workspace
 Code Checkout
@@ -160,7 +161,7 @@ Trivy Image Scan
 Deployment using Docker Compose
 Email Notification
 
-🏁 Outcome
+## 🏁 Outcome
 Fully automated CI/CD pipeline
 Integrated quality, security, and monitoring checks
 Containerized deployment using Docker and Docker Compose
