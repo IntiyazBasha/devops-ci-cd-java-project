@@ -151,26 +151,26 @@ services:
 🧪 ## Jenkins Pipeline
 
 The Jenkins pipeline was written using Declarative Pipeline syntax and includes the following stages:
-Clean Workspace
-Code Checkout
-Build using Maven
-Code Quality Analysis (SonarQube)
-Quality Gate Enforcement
-Artifact Upload to Nexus
-Docker Image Build
-Trivy Image Scan
-Deployment using Docker Compose
-Email Notification
+- Clean Workspace – Clears previous build artifacts  
+- Code Checkout – Pulls source code from GitHub  
+- Maven Build – Compiles and packages the Java application  
+- SonarQube Analysis – Performs static code analysis  
+- Quality Gate Enforcement – Stops pipeline if quality checks fail  
+- Nexus Artifact Upload – Stores WAR artifacts in Nexus Repository  
+- Docker Image Build – Builds application and database images  
+- Trivy Image Scan – Scans Docker images for vulnerabilities  
+- Docker Compose Deployment – Deploys multi-container application  
+- Email Notification – Sends build status notifications  
 
 ---
 
 🏁## Outcome
 
-Fully automated CI/CD pipeline
-Integrated quality, security, and monitoring checks
-Containerized deployment using Docker and Docker Compose
-Automated artifact management using Nexus
-Real-time application monitoring using New Relic
-Complete DevOps lifecycle implemented:
-Build → Test → Deploy → Monitor
+- Fully automated end-to-end CI/CD pipeline  
+- Improved code quality through SonarQube Quality Gates  
+- Secure container images with Trivy vulnerability scanning  
+- Containerized deployment using Docker and Docker Compose  
+- Centralized artifact management using Nexus Repository  
+- Real-time application performance monitoring using New Relic  
+- Complete DevOps lifecycle implemented: Build → Test → Deploy → Monitor 
 ---
