@@ -1,0 +1,301 @@
+Hi, I have completed a project using the following technology stack:
+
+- Git – Source code management
+- Jenkins – CI/CD automation
+- Maven – Build and dependency management
+- SonarQube – Code quality analysis
+- Nexus – Artifact repository
+- Docker – Containerization
+- Docker Compose – Multi-container orchestration
+- Trivy – Vulnerability scanning
+- Tomcat – Application server
+
+This project is a Java-based application where the backend application and database source code were taken from GitHub.
+The application was built, analyzed, packaged, and deployed using a complete CI/CD pipeline.
+
+Pipeline Flow:
+GitHub → Jenkins → Maven Build → SonarQube → Quality Gate → Nexus → Docker Build → Trivy Scan → Docker Compose Deploy → Email Notification
+
+Steps:
+
+1. I have created a ec2-instance with Amazon Linux AMI, and instace type of 2CPU and 8GBRAM, Security groups All traffic because just for the practice, 28GB of storage and launched it.
+
+2. After that i have installed the git, docker and docker compose in it.
+	Commands:
+		sudo -i
+		yum install git docker -y systemctl start docker
+		#Docker-Compose
+		vim .bashrc
+		export PATH=$PATH:/usr/local/bin/
+		source .bashrc
+		# Download the current stable release of Docker Compose
+		sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+		# Apply executable permissions
+		sudo chmod +x /usr/local/bin/docker-compose
+		# Create a symbolic link
+		sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+		# Install using pip (Python package manager)
+		sudo yum install -y python3-pip
+		sudo pip3 install docker-compose
+
+		#check version
+		docker-compose --version
+		
+3. Install jenkins on the instance.
+	Commands:
+		#Create a file to download
+		vi jenkins.sh
+		
+		#Commands to download
+		sudo yum update -y
+		sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+		sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+		sudo yum upgrade
+		sudo yum install java-17-amazon-corretto -y
+		sudo yum install jenkins git -y
+		sudo systemctl enable jenkins
+		sudo systemctl start jenkins
+		sudo systemctl status jenkins
+		sudo mkdir -p /var/tmp_disk
+		sudo chmod 1777 /var/tmp_disk
+		sudo mount --bind /var/tmp_disk /tmp
+		echo '/var/tmp_disk /tmp none bind 0 0' | sudo tee -a /etc/fstab
+		sudo systemctl mask tmp.mount
+		df -h /tmp
+		sudo systemctl restart jenkins
+		
+		#Exexute the file to install Jenkins
+		sh jenkins.sh
+		
+	Access the Jenkins using instace-public-IP-address:8080
+	Enter the password by accesing the path given on Jenkins dashboard in EC2-instace 
+	Command: 
+		cat /var/lib/jenkins/secrets/initialAdminPassword
+	Install suggested plugins.
+		
+4. For SonarQube installation, We will create a Container using docker by taking the image from dockerhub
+	Commands:
+		docker run -itd --name sonar -p 9000:9000 sonarqube:lts-community
+	Access the sonarqube with 9000 port number and give username: admin and password: admin, after that we need to change the password
+	To integrate SonarQube with jenkins:
+		Go to manage jenkins > Plugins > Available Plugins > Install SonarQube Scanner
+		Go to manage jenkins > System > Add SonarQube Scanner and add the credetials with secret text type
+		Go to manage jenkins > tools> add the sonarqube name.
+	
+	Go to SonarQube Dashboard and get the commands to put in the pipeline
+	Select or create a Project
+	Click on Manually for project setup
+	Choose GitHub as the repository type
+	Click Continue to create the webhook
+	Select Maven as the build tool
+	Commands:
+		withSonarQubeEnv('mysonar') {
+			sh "mvn clean verify sonar:sonar -Dsonar.projectKey=MyProject"
+		}
+	Copy the SonarQube analysis commands provided
+	Add the copied commands into the Jenkins pipeline
+	
+	For Quality Gates:
+		SonarQube must be configured in Manage Jenkins → System
+		SonarQube token must be stored in Jenkins Credentials
+		Webhook must be configured in SonarQube by selecting the Project
+		Pipeline execution is automatically stopped if the SonarQube Quality Gate fails.
+5. For Trivy installation, we can directly copy the commands on the server.
+	Trivy was used to scan Docker images for known vulnerabilities (CVEs).
+	Commands:
+		wget https://github.com/aquasecurity/trivy/releases/download/v0.18.3/trivy_0.18.3_Linux-64bit.tar.gz
+		tar zxvf trivy_0.18.3_Linux-64bit.tar.gz
+		sudo mv trivy /usr/local/bin/
+
+6. For Nexus integration with Jenkins, For this we will create a new server with Amazon Linux AMI, Security groups port 8081, EBS volume 25GB, and t3.micro is enough for project purpose.
+	Commands:
+		#Create a file
+		vi nexus.sh
+		
+		#Commands to install
+		sudo yum update -y
+		sudo yum install wget -y
+		sudo yum install java-17-amazon-corretto-jmods -y
+		sudo mkdir /app && cd /app
+		sudo wget https://download.sonatype.com/nexus/3/nexus-3.79.1-04-linux-x86_64.tar.gz
+		sudo tar -xvf nexus-3.79.1-04-linux-x86_64.tar.gz
+		sudo mv nexus-3.79.1-04 nexus
+		sudo adduser nexus
+		sudo chown -R nexus:nexus /app/nexus
+		sudo chown -R nexus:nexus /app/sonatype*
+		sudo sed -i '27s/.*/run_as_user="nexus"/' /app/nexus/bin/nexus
+		sudo tee /etc/systemd/system/nexus.service > /dev/null << EOL
+		[Unit]
+		Description=nexus service
+		After=network.target
+		[Service]
+		Type=forking
+		LimitNOFILE=65536
+		User=nexus
+		Group=nexus
+		ExecStart=/app/nexus/bin/nexus start
+		ExecStop=/app/nexus/bin/nexus stop
+		User=nexus
+		Restart=on-abort
+		[Install]
+		WantedBy=multi-user.target
+		EOL
+		sudo chkconfig nexus on
+		sudo systemctl start nexus
+		sudo systemctl enable nexus
+		sudo systemctl status nexus
+		
+		#Exexute the file
+		sh nexus.sh
+		
+	After this access the port with 8081, enter the password from the path given in nexus dashboard
+	Command:
+		cat /app/sonatype-work/nexus3/admin.password
+		
+	After this we need to change the password
+	Navigate to Settings → Repositories
+	Click Create repository
+	Select maven2 (hosted)
+	Enter a suitable Repository Name
+	Under Deployment Policy, select Allow redeploy
+	Click Create repository to save
+	
+7. For Email notifications regarding build status,
+	Go to manage jenkins > Plugins > Install Email Extender.
+	
+8. For Maven integration
+	Go to Manage Jenkins
+	Select Tools
+	Scroll to the Maven section
+	Add or select the latest Maven version
+	Provide a name for the Maven installation
+	Click Save
+	
+9. Dockerfile for Docker-app:
+
+	***
+	FROM tomcat:8-jre11
+	RUN rm -rf /usr/local/tomcat/webapps/*
+	COPY target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
+	CMD ["catalina.sh", "run"]
+	***
+	
+10. Dockerfile for Docker-db:
+
+	***
+	FROM mysql:5.7.25
+	ENV MYSQL_ROOT_PASSWORD="devopspassword"
+	ENV MYSQL_DATABASE="accounts"
+	#dont expose passwords here
+	ADD db_backup.sql docker-entrypoint-initdb.d/db_backup.sql
+	***
+	
+11. Docker-Compose file to run both services:
+
+	***
+	---
+	version: "3"
+	services:
+		devopsdb:
+			container_name: devopsdb
+			image: dbimage
+			ports:
+				- "3306:3306"	
+		application:
+			container_name: appcontainer
+			image: appimage
+			ports:
+				- "1111:8080"
+			depends_on:
+				- "devopsdb"
+	***
+10. Now we will write a pipeline in Jenkins
+
+	Pipeline:
+	
+	
+	pipeline {
+		agent any
+		tools {
+			maven "mymaven"
+		}
+		stages{
+		
+			stage("Clean Workspace") {//To clean the Workspace which is occupied by the previous build
+				steps {
+					cleanWs()
+				}
+			}
+			
+			stage("Code") {// To get the code from the github
+				steps {
+					git "https://github.com/shaikmustafa77/dockerwebapp.git"
+				}
+			}
+			
+			stage("Build") {// To build the code file and to get the war file
+				steps {
+					sh "mvn clean package" // we get war file here
+					sh "cp -r target Docker-app" // we need to copy the war file to the Docker-app folder where Dockerfile presents to build an image
+				}
+			}
+			
+			stage("CQA") {// To test the bugs in the code using sonarqube
+				steps {
+					withSonarQubeEnv('mysonar') {
+						sh "mvn clean verify sonar:sonar -Dsonar.projectKey=MyProject"
+					}
+				}
+			}
+			
+			stage("Quality Gates") {// To test whether the code is good to build
+				steps {
+					script {// Select pipeline syntax > select waitforQualitygates
+						waitForQualityGate abortPipeline: true, credentialsId: 'sonar-token'
+					}
+				}
+			}
+			
+			stage("Artifact") {
+				steps{ // Go to pipeline syntax and enter all the required credetials
+					nexusArtifactUploader artifacts: [[artifactId: 'vprofile', classifier: '', file: 
+					'target/vprofile-v2.war', type: 'war']], credentialsId: 'nexus', groupId: 'com.visualpathit', 
+					nexusUrl: '3.86.149.224:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'myrepo', 
+					version: 'v2'
+				}
+			}
+			
+			stage("Image") {
+				steps { // Building the image using Dockerfile
+					sh "docker build -t appimage Docker-app/"
+					sh "docker build -t dbimage Docker-db"
+				}
+			}
+			
+			stage("Image Scan") {
+				steps { // Using trivy to scan image and get the reports
+					sh "trivy image appimage >> appimage-report.txt"
+					sh "trivy image dbimage >> dbimage-report.txt"
+				}
+			}
+			stage ("deploy") {
+				steps { // deploying the application on the tomcat server
+					sh 'docker-compose up -d'
+				}
+			}
+		}
+		post {
+    always {
+        emailext(
+            to: "senderemail@gmail.com",
+            subject: "Pipeline Status",
+            body: """${currentBuild.currentResult}
+			Job: ${env.JOB_NAME}
+			Build: ${env.BUILD_NUMBER}
+			More info: ${env.BUILD_URL}""")
+		}	
+	}
+}
+
+
