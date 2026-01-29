@@ -1,4 +1,4 @@
-Hi, I have completed a project using the following technology stack:
+Hi, This is a project using the following technology stack:
 
 - Git – Source code management
 - Jenkins – CI/CD automation
