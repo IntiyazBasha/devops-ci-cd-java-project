@@ -117,6 +117,7 @@ This enabled real-time observability and post-deployment monitoring of the appli
 ## 🐳 Docker Configuration
 
 ### Application Dockerfile
+```dockerfile
 FROM tomcat:8-jre11
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
@@ -145,6 +146,7 @@ services:
       - "1111:8080"
     depends_on:
       - devopsdb
+---
 
 ## 🧪 Jenkins Pipeline
 The Jenkins pipeline was written using Declarative Pipeline syntax and includes the following stages:
