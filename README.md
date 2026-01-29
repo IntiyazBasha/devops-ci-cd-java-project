@@ -113,24 +113,23 @@ The New Relic Java agent was configured to collect:
 - CPU and memory utilization
 
 This enabled real-time observability and post-deployment monitoring of the application.
-
+---
 ## 🐳 Docker Configuration
-
 ### Application Dockerfile
 ```dockerfile
 FROM tomcat:8-jre11
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
 CMD ["catalina.sh", "run"]
-
+```
 ### Database Dockerfile
+```dockerfile
 FROM mysql:5.7.25
 ENV MYSQL_ROOT_PASSWORD="devopspassword"
 ENV MYSQL_DATABASE="accounts"
 ADD db_backup.sql docker-entrypoint-initdb.d/db_backup.sql
-
-
-## 🧩 Docker Compose Configuration
+```
+### 🧩 Docker Compose Configuration
 ```yaml
 version: "3"
 services:
@@ -147,9 +146,10 @@ services:
       - "1111:8080"
     depends_on:
       - devopsdb
-
+```
 ---
-## 🧪 Jenkins Pipeline
+🧪 ## Jenkins Pipeline
+
 The Jenkins pipeline was written using Declarative Pipeline syntax and includes the following stages:
 Clean Workspace
 Code Checkout
@@ -161,8 +161,11 @@ Docker Image Build
 Trivy Image Scan
 Deployment using Docker Compose
 Email Notification
+
 ---
-## 🏁 Outcome
+
+🏁## Outcome
+
 Fully automated CI/CD pipeline
 Integrated quality, security, and monitoring checks
 Containerized deployment using Docker and Docker Compose
