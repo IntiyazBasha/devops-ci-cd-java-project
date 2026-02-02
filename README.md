@@ -148,7 +148,7 @@ services:
       - devopsdb
 ```
 ---
-🧪 ## Jenkins Pipeline
+## 🧪 Jenkins Pipeline
 
 The Jenkins pipeline was written using Declarative Pipeline syntax and includes the following stages:
 - Clean Workspace – Clears previous build artifacts  
@@ -164,7 +164,7 @@ The Jenkins pipeline was written using Declarative Pipeline syntax and includes 
 
 ---
 
-🏁## Outcome
+## 🏁 Outcome
 
 - Fully automated end-to-end CI/CD pipeline  
 - Improved code quality through SonarQube Quality Gates  
