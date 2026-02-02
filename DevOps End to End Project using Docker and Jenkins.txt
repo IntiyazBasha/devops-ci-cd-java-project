@@ -8,6 +8,7 @@ Hi, I have completed a project using the following technology stack:
 - Docker – Containerization
 - Docker Compose – Multi-container orchestration
 - Trivy – Vulnerability scanning
+- New Relic - Monitoring
 - Tomcat – Application server
 
 This project is a Java-based application where the backend application and database source code were taken from GitHub.
@@ -297,5 +298,6 @@ Steps:
 		}	
 	}
 }
+
 
 
